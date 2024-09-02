@@ -20,6 +20,11 @@ VerboseStateFactory: false
 robots:
   ground:
     module: env/ground
+  wall:
+    module: env/ground
+    init_pos:
+      translation: [0.45, 0.0, 0.0]
+      rotation: [0.0, -1.57, 0.0]
 # General constraints, always on
 constraints:
 - type: contact
@@ -54,3 +59,21 @@ transitions:
 - [KaleidoAdmittance_Initial, OK, KaleidoAdmittance_Initial, Strict]
 # Initial state
 init: KaleidoAdmittance_Initial
+
+#Observer Pipelines
+# ObserverPipelines:
+#   name: "KaleidoForceObserverPipeline"
+#   gui: true
+#   observers:
+#     - type: Encoder
+#     - type: Attitude
+#       required: false
+#       config:
+#         KalmanFilter:
+#           gyr_cov: 0.000001
+#     - type: KinematicInertial
+#       config:
+#         anchorFrame:
+#           maxAnchorFrameDiscontinuity: 0.02
+#     - type: BodySensor
+#       update: false
