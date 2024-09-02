@@ -82,10 +82,10 @@ void KaleidoAdmittance::reset(const mc_control::ControllerResetData & reset_data
 
 
       // comTask_->com(comTask_->com() + Eigen::Vector3d{0.05, 0.00, 0});
-      rightArm_PosTask_->position({600, -0.20, 1.00});
+      rightArm_PosTask_->position({0.45, -0.20, 1.00});
       
 
-      if(rightArm_PosTask_->eval().norm() < 1e-20) {
+      if(rightArm_PosTask_->eval().norm() < 1e-3) {
 
       mc_rtc::log::info("Moved the Right Arm into Position\n");
 
