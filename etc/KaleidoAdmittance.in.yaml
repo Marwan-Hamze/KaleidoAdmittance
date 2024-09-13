@@ -28,7 +28,7 @@ robots:
 # General constraints, always on
 constraints:
 - type: contact
-- type: dynamics
+# - type: dynamics
   damper: [0.1, 0.01, 0.5]
 - type: compoundJoint
 # Collision constraint
@@ -40,23 +40,127 @@ contacts:
 - r2: ground
   r1Surface: LeftFoot
   r2Surface: AllGround
+  dof: [1,1,1,1,1,1]
 - r2: ground
   r1Surface: RightFoot
   r2Surface: AllGround
+  dof: [1,1,1,1,1,1]
 
 # Some options for a specific robot
-jvrc1:
+rhp7:
   posture:
     stiffness: 1
     weight: 10
   ff:
     stiffness: 2
     weight: 100
+
+active_dof: ["Root", "L_CROTCH_Y", "L_CROTCH_R", "L_CROTCH_P", "L_KNEE_P", "L_ANKLE_R", "L_ANKLE_P", 
+                      "R_CROTCH_Y", "R_CROTCH_R", "R_CROTCH_P", "R_KNEE_P", "R_ANKLE_R", "R_ANKLE_P", 
+                      "R_SHOULDER_P", "R_SHOULDER_R", "R_ELBOW_Y", "R_ELBOW_P", "R_WRIST_Y", "R_WRIST_P"]
+
+                      
 # Implement some additional text states
-states: {}
+states:
+  # Keep the CoM centered between the feet, and the chest and base upright
+  StandingBase:
+    base: MetaTasks
+    tasks:
+      CoM:
+        type: com
+        above: [LeftFoot, RightFoot]      
+        weight: 1000
+        stiffness: 5
+      KeepTorso:
+        type: orientation
+        body: CHEST_P_LINK
+        weight: 500
+        stiffness: 1
+      KeepBase:
+        type: orientation
+        body: BODY
+        weight: 500
+        stiffness: 1
+  
+  #Move the CoM to the front
+  MoveCoM:
+    base: MetaTasks
+    tasks:
+      CoM:
+        type: com
+        above: [LeftFoot, RightFoot]
+        move_com: [0.04, 0, 0]        
+        weight: 2000
+        stiffness: 5
+#        duration: 4.0
+#        completion:
+#          eval: 0.001
+  
+  # Trajectory to bring the right hand close to the table
+  RightHandToWall:
+    base: StandingBase
+    tasks:
+      RightHandTrajectory:
+        type: bspline_trajectory
+        setupMode: false
+        surface: RightHand
+        weight: 1000
+        stiffness: 50
+        duration: 2.0
+        dimWeight: [1, 1, 1, 1, 0.5, 0.5]
+        displaySamples: 100
+        target:
+          translation: [0.25, -0.2, 1]
+          rotation: [0.0, -1.7, 0.0]
+        controlPoints: [[0.0, -0.5, 0.85]]
+        oriWaypoints: [0.75, [0.147, -0.618, -0.179]]
+        completion:
+          timeElapsed: true
+
+# Right Hand reaching the table and making contact
+  RightHand::ContactWithConstantVel:
+    base: StandingBase
+#    config:
+#      CoM:
+#        move_com: [0.05, 0, 0] 
+    # Only allow motion along hand's z axis
+#    AddContacts:
+#      - r1: rhp7
+#        r2: wall  
+#        r1Surface: RightHand
+#        r2Surface: AllGround
+#        dof: [0, 0, 0, 0, 0, 0]
+    tasks:
+      RightHandContactConstantVelocity:
+        type: transform
+        surface: RightHand
+        refVel: [0,0,0,0,0,-0.05]
+        stiffness: 1
+        duration: 2.0
+        damping: 300
+        weight: 800
+        completion:
+          timeElapsed: true
+          # wrench:
+          #   couple: [.NaN, .NaN, .NaN]
+          #   force: [28.0, 20.0, 20.0]
+  
+  RightHand::Contact:
+    base: StandingBase
+    AddContacts:
+      - r1: rhp7
+        r2: wall
+        r1Surface: RightHand
+        r2Surface: AllGround
+        dof: [1, 1, 1, 1, 1, 1]
+
 # Transitions map
 transitions:
-- [KaleidoAdmittance_Initial, OK, KaleidoAdmittance_Initial, Strict]
+- [KaleidoAdmittance_Initial,                    OK, RightHandToWall, Auto]
+- [RightHandToWall,                              OK, RightHand::ContactWithConstantVel, Auto]
+- [RightHand::ContactWithConstantVel,            OK, RightHand::Contact, Auto]
+# - [KaleidoAdmittance_Initial, OK, StandingBase, Auto]
+
 # Initial state
 init: KaleidoAdmittance_Initial
 

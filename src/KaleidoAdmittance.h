@@ -24,6 +24,8 @@ struct KaleidoAdmittance_DLLAPI KaleidoAdmittance : public mc_control::fsm::Cont
 
   private:
 
+    mc_rtc::Configuration config_;
+
     // GUI Related
 
     bool start = false;
