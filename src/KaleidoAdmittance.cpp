@@ -30,8 +30,8 @@ KaleidoAdmittance::KaleidoAdmittance(mc_rbdyn::RobotModulePtr rm, double dt, con
   // rightArm_ForceTask_ = std::make_shared<mc_tasks::force::AdmittanceTask>("RightHand", robots(), robots().robot().robotIndex(), 2.0, 1e9);
 
 
-  // logger().addLogEntry("Kaleido_CoM", [this]() { return realRobots().robot().com(); });
-  // logger().addLogEntry("RightHand_Force", [this]() {return realRobots().robot().forceSensor("RightHandForceSensor").wrenchWithoutGravity(realRobots().robot()).force();});
+  logger().addLogEntry("Kaleido_CoM", [this]() { return realRobots().robot().com(); });
+  logger().addLogEntry("RightHand_Force", [this]() {return realRobots().robot().forceSensor("RightHandForceSensor").wrenchWithoutGravity(realRobots().robot()).force();});
 
   mc_rtc::log::success("KaleidoAdmittance init done ");
   
@@ -48,7 +48,7 @@ bool KaleidoAdmittance::run()
 
   // }
 
-  // t_ += timeStep;
+  t_ += timeStep;
 
   return mc_control::fsm::Controller::run();
 }
@@ -99,17 +99,17 @@ void KaleidoAdmittance::reset(const mc_control::ControllerResetData & reset_data
 
   // // Plot related code in RViz
 
-  // using Color = mc_rtc::gui::Color;
+  using Color = mc_rtc::gui::Color;
 
-  // gui()->addPlot(
-  //   "Right Hand Force (t)", mc_rtc::gui::plot::X("t", [this]() { return t_; }),
-  //   mc_rtc::gui::plot::Y(
-  //       "f_RH(z)", [this]() { return realRobots().robot().forceSensor("RightHandForceSensor").wrenchWithoutGravity(realRobots().robot()).force().z(); }, Color::Red), 
-  //   mc_rtc::gui::plot::Y(
-  //       "f_RH(x)", [this]() { return realRobots().robot().forceSensor("RightHandForceSensor").wrenchWithoutGravity(realRobots().robot()).force().x(); }, Color::Green),
-  //   mc_rtc::gui::plot::Y(
-  //       "f_RH(y)", [this]() { return realRobots().robot().forceSensor("RightHandForceSensor").wrenchWithoutGravity(realRobots().robot()).force().y(); }, Color::Blue)
-  //       ); 
+  gui()->addPlot(
+    "Right Hand Force (t)", mc_rtc::gui::plot::X("t", [this]() { return t_; }),
+    mc_rtc::gui::plot::Y(
+        "f_RH(z)", [this]() { return realRobots().robot().forceSensor("RightHandForceSensor").wrenchWithoutGravity(realRobots().robot()).force().z(); }, Color::Red), 
+    mc_rtc::gui::plot::Y(
+        "f_RH(x)", [this]() { return realRobots().robot().forceSensor("RightHandForceSensor").wrenchWithoutGravity(realRobots().robot()).force().x(); }, Color::Green),
+    mc_rtc::gui::plot::Y(
+        "f_RH(y)", [this]() { return realRobots().robot().forceSensor("RightHandForceSensor").wrenchWithoutGravity(realRobots().robot()).force().y(); }, Color::Blue)
+        ); 
 
   mc_control::fsm::Controller::reset(reset_data);
 

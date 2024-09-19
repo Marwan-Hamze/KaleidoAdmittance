@@ -132,19 +132,58 @@ states:
 #        dof: [0, 0, 0, 0, 0, 0]
     tasks:
       RightHandContactConstantVelocity:
-        type: transform
+        type: bspline_trajectory
+        setupMode: false
         surface: RightHand
-        refVel: [0,0,0,0,0,-0.05]
-        stiffness: 1
+        stiffness: 50
         duration: 2.0
-        damping: 300
-        weight: 800
+        weight: 1000
+        dimWeight: [1, 1, 1, 1, 0.5, 0.5]
+        displaySamples: 100
+        target:
+          translation: [0.5, -0.2, 1]
+          rotation: [0.0, -1.7, 0.0]
         completion:
           timeElapsed: true
           # wrench:
           #   couple: [.NaN, .NaN, .NaN]
           #   force: [28.0, 20.0, 20.0]
-  
+
+  RightHand::Admittance:
+    base: StandingBase
+    tasks:
+      RightHandAdmittance:
+        type: admittance
+        surface: RightHand
+        # Tracks the forces along the normal axis of the gripper surface with an admittance coefficient of 0.001
+        # Note the high-damping and low stiffness on that axis.
+        # All other axis are position controlled and will keep the current gripper position as much as possible
+        admittance: [0,0,0,0,0,0.001]
+        stiffness: [10, 10, 10, 10, 10, 1]
+        damping: [6.3, 6.3, 6.3, 6.3, 6.3, 300]
+        maxVel:
+          linear: [0.2, 0.2, 0.5]
+          angular: [0.2, 0.2, 0.2]
+        # Target a desired force of 20N along the Z axis of the gripper surface
+        wrench:
+         force: [0, 0, -30]
+         couple: [0, 0, 0]
+        # Rotate the gripper such that the fingers point towards the wall
+        # targetRotation: [1.57, 0, 1.57]
+        # The task will complete one a force of -20N has been reached. All other axes are ignored.
+        completion:
+          wrench:
+            force: [.nan, .nan, 30]
+            couple: [.nan, .nan, .nan]
+
+  # Regulate force to 30N for 3 seconds
+  RightHandKeepAdmittance:
+    base: Parallel
+    states: [RightHand::Admittance, Pause]
+    configs:
+      Pause:
+        duration: 3
+
   RightHand::Contact:
     base: StandingBase
     AddContacts:
@@ -158,8 +197,10 @@ states:
 transitions:
 - [KaleidoAdmittance_Initial,                    OK, RightHandToWall, Auto]
 - [RightHandToWall,                              OK, RightHand::ContactWithConstantVel, Auto]
-- [RightHand::ContactWithConstantVel,            OK, RightHand::Contact, Auto]
-# - [KaleidoAdmittance_Initial, OK, StandingBase, Auto]
+- [RightHand::ContactWithConstantVel,            OK, RightHand::Admittance, Auto]
+# - [RightHand::Admittance,                        OK, RightHandKeepAdmittance, Auto]
+# - [RightHandKeepAdmittance,                        OK, RightHand::Contact, Auto]
+- [RightHand::Admittance,                        OK, RightHand::Contact, Auto]
 
 # Initial state
 init: KaleidoAdmittance_Initial
