@@ -206,19 +206,19 @@ transitions:
 init: KaleidoAdmittance_Initial
 
 #Observer Pipelines
-# ObserverPipelines:
-#   name: "KaleidoForceObserverPipeline"
-#   gui: true
-#   observers:
-#     - type: Encoder
-#     - type: Attitude
-#       required: false
-#       config:
-#         KalmanFilter:
-#           gyr_cov: 0.000001
-#     - type: KinematicInertial
-#       config:
-#         anchorFrame:
-#           maxAnchorFrameDiscontinuity: 0.02
-#     - type: BodySensor
-#       update: false
+ObserverPipelines:
+  name: "KaleidoForceObserverPipeline"
+  gui: true
+  observers:
+    - type: Encoder
+    - type: Attitude
+      required: false
+      config:
+        KalmanFilter:
+          gyr_cov: 0.000001
+    - type: KinematicInertial
+      config:
+        anchorFrame:
+          maxAnchorFrameDiscontinuity: 0.02
+    - type: BodySensor
+      update: false

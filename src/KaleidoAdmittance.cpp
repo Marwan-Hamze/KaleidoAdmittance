@@ -13,13 +13,13 @@ KaleidoAdmittance::KaleidoAdmittance(mc_rbdyn::RobotModulePtr rm, double dt, con
 
   // Setting the anchor frame for the Kinematic Inertial estimator
 
-  // datastore().make_call("KinematicAnchorFrame::" + robot().name(),
-  //                         [this](const mc_rbdyn::Robot & robot)
-  //                         {
-  //                           return sva::interpolate(robot.surfacePose("LeftFoot"),
-  //                                                   robot.surfacePose("RightFoot"),
-  //                                                   leftFootRatio);
-  //                         });
+  datastore().make_call("KinematicAnchorFrame::" + robot().name(),
+                          [this](const mc_rbdyn::Robot & robot)
+                          {
+                            return sva::interpolate(robot.surfacePose("LeftFoot"),
+                                                    robot.surfacePose("RightFoot"),
+                                                    leftFootRatio);
+                          });
 
   // comTask_ = std::make_shared<mc_tasks::CoMTask>(robots(), robots().robot().robotIndex(), 2, 1e7);
   // baseTask_ = std::make_shared<mc_tasks::OrientationTask>("BODY", robots(), robots().robot().robotIndex(), 2, 1e7);
@@ -32,6 +32,9 @@ KaleidoAdmittance::KaleidoAdmittance(mc_rbdyn::RobotModulePtr rm, double dt, con
 
   logger().addLogEntry("Kaleido_CoM", [this]() { return realRobots().robot().com(); });
   logger().addLogEntry("RightHand_Force", [this]() {return realRobots().robot().forceSensor("RightHandForceSensor").wrenchWithoutGravity(realRobots().robot()).force();});
+  logger().addLogEntry("RightHand_Force", [this]() {return realRobots().robot().forceSensor("RightHandForceSensor").wrenchWithoutGravity(realRobots().robot()).force();});
+  logger().addLogEntry("RightHand_Velocity_Linear", [this]() { return realRobots().robot().bodyVelW("R_HAND_LINK").linear(); });
+
 
   mc_rtc::log::success("KaleidoAdmittance init done ");
   
