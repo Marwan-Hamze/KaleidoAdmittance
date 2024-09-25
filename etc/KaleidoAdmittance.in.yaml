@@ -170,7 +170,7 @@ states:
          couple: [0, 0, 0]
         # Rotate the gripper such that the fingers point towards the wall
         # targetRotation: [1.57, 0, 1.57]
-        # The task will complete one a force of -20N has been reached. All other axes are ignored.
+        # The task will complete one a force of 30N has been reached. All other axes are ignored.
         completion:
           wrench:
             force: [.nan, .nan, 30]
