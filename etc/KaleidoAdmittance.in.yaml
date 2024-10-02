@@ -96,7 +96,7 @@ states:
 #        completion:
 #          eval: 0.001
   
-  # Trajectory to bring the right hand close to the table
+  # Trajectory to bring the right hand close to the wall
   RightHandToWall:
     base: StandingBase
     tasks:
@@ -117,7 +117,7 @@ states:
         completion:
           timeElapsed: true
 
-# Right Hand reaching the table and making contact
+# Right Hand reaching the wall and making contact
   RightHand::ContactWithConstantVel:
     base: StandingBase
 #    config:
@@ -193,14 +193,48 @@ states:
         r2Surface: AllGround
         dof: [1, 1, 1, 1, 1, 1]
 
+  RightFoot::RemoveContact:
+    base: StandingBase
+    AddContacts:
+      - r1: rhp7
+        r2: ground
+        r1Surface: RightFoot
+        r2Surface: AllGround
+        dof: [0, 0, 0, 0, 0, 0]
+
+  # Trajectory to bring the right foot to a desired position
+  RightFootToTarget:
+    base: StandingBase
+    tasks:
+      RightHandTrajectory:
+        type: bspline_trajectory
+        setupMode: false
+        surface: RightFoot
+        weight: 1000
+        stiffness: 50
+        duration: 2.0
+        dimWeight: [1, 1, 1, 1, 0.5, 0.5]
+        displaySamples: 100
+        target:
+          translation: [0.0, -0.4, 0.15]
+          rotation: [0.0, -0.0, 0.0]
+        # controlPoints: [[0.0, -0.5, 0.85]]
+        # oriWaypoints: [0.75, [0.147, -0.618, -0.179]]
+        completion:
+          timeElapsed: true
+
 # Transitions map
 transitions:
 - [KaleidoAdmittance_Initial,                    OK, RightHandToWall, Auto]
 - [RightHandToWall,                              OK, RightHand::ContactWithConstantVel, Auto]
 - [RightHand::ContactWithConstantVel,            OK, RightHand::Admittance, Auto]
-# - [RightHand::Admittance,                        OK, RightHandKeepAdmittance, Auto]
-# - [RightHandKeepAdmittance,                        OK, RightHand::Contact, Auto]
+- [RightHand::Admittance,                        OK, RightHandKeepAdmittance, Auto]
+- [RightHandKeepAdmittance,                      OK, RightHand::Contact, Auto]
 - [RightHand::Admittance,                        OK, RightHand::Contact, Auto]
+- [RightHand::Contact,                           OK, MoveRightFoot, Auto]
+- [MoveRightFoot,                                OK, RightFoot::RemoveContact, Auto]
+- [RightFoot::RemoveContact,                     OK, RightFootToTarget, Auto]
+
 
 # Initial state
 init: KaleidoAdmittance_Initial
